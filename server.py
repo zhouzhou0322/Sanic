@@ -4,6 +4,7 @@ from sanic.response import json, text
 import base64
 import os
 import uuid
+import time
 
 
 app = Sanic(__name__)
@@ -17,17 +18,22 @@ class MyView(HTTPMethodView):
 
 class UploadView(HTTPMethodView):
     async def post(self, request):
+        start_time = time.perf_counter()
         if 'image' not in request.json:
             return text('Missing image data.', status=400)
         image_data = base64.b64decode(request.json['image'])
-        filename = str(uuid.uuid4()) + '.jpg'
-        file_path = os.path.join('./', filename)
+        filename = str("a") + '.jpg'
+        file_path = os.path.join('../img/', filename)
         with open(file_path, 'wb') as f:
             f.write(image_data)
+            
+        end_time = time.perf_counter()
+        duration = end_time - start_time
+        #print(f"Execution time: {duration:.6f} seconds")
         return json({'status': 'success', 'filename': filename})
 
 app.add_route(MyView.as_view(), '/')
 app.add_route(UploadView.as_view(), '/upload')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, workers=12)
+    app.run(host='0.0.0.0', port=8000, workers=4)
